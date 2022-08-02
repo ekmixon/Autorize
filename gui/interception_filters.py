@@ -48,7 +48,7 @@ class InterceptionFilters():
                      "Ignore target requests: (Content is not required)"]
         self._extender.IFType = JComboBox(IFStrings)
         self._extender.IFType.setBounds(80, 10, 430, 30)
-       
+
         self._extender.IFModel = DefaultListModel()
         self._extender.IFList = JList(self._extender.IFModel)
 
@@ -61,7 +61,7 @@ class InterceptionFilters():
         # self.IFModel.addElement("Scope items only: (Content is not required)") # commented for better first impression.
         self._extender.IFModel.addElement("URL Not Contains (regex): \\.js|\\.css|\\.png|\\.jpg|\\.svg|\\.jpeg|\\.gif|\\.woff|\\.map|\\.bmp|\\.ico$")
         self._extender.IFModel.addElement("Ignore spider requests: ")
-        
+
         self._extender.IFText = JTextArea("", 5, 30)
 
         scrollIFText = JScrollPane(self._extender.IFText)

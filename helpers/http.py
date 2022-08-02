@@ -10,7 +10,7 @@ def isStatusCodesReturned(self, messageInfo, statusCodes):
         for statusCode in statusCodes:
             if statusCode in firstHeader:
                 return True
-    elif type(statusCodes) == str or type(statusCodes) == unicode:
+    elif type(statusCodes) in [str, unicode]:
         # single status code
         if statusCodes in firstHeader:
                 return True
@@ -32,8 +32,15 @@ def makeMessage(self, messageInfo, removeOrNot, authorizeOrNot):
             paramKey = param[0]
             paramValue = param[1]
             # ([\?&])test=.*?(?=[\s&])
-            pattern = r"([\?&]){}=.*?(?=[\s&])".format(paramKey)
-            patchedHeader = re.sub(pattern, r"\1{}={}".format(paramKey, paramValue), headers[0], count=1, flags=re.DOTALL)
+            pattern = f"([\?&]){paramKey}=.*?(?=[\s&])"
+            patchedHeader = re.sub(
+                pattern,
+                f"\1{paramKey}={paramValue}",
+                headers[0],
+                count=1,
+                flags=re.DOTALL,
+            )
+
             headers[0] = patchedHeader
         else:
             removeHeaders = self.replaceString.getText()
@@ -41,7 +48,7 @@ def makeMessage(self, messageInfo, removeOrNot, authorizeOrNot):
             # Headers must be entered line by line i.e. each header in a new
             # line
             removeHeaders = [header for header in removeHeaders.split() if header.endswith(':')]
-            
+
             for header in headers[:]:
                 for removeHeader in removeHeaders:
                     if header.startswith(removeHeader):
@@ -54,14 +61,14 @@ def makeMessage(self, messageInfo, removeOrNot, authorizeOrNot):
                     headers = map(lambda h: h.replace(v["match"], v["replace"]), headers)
                 if(v["type"] == "Headers (regex):") :
                     headers = map(lambda h: re.sub(v["regexMatch"], v["replace"], h), headers)
-                    
+
             if not queryFlag:
                 # fix missing carriage return on *NIX systems
                 replaceStringLines = self.replaceString.getText().split("\n")
-                
+
                 for h in replaceStringLines:
                     headers.append(h)
-            
+
     msgBody = messageInfo.getRequest()[requestInfo.getBodyOffset():]
 
     # apply the match/replace settings to the body of the request
@@ -78,7 +85,9 @@ def makeMessage(self, messageInfo, removeOrNot, authorizeOrNot):
 
 def getResponseHeaders(self, requestResponse):
     analyzedResponse = self._helpers.analyzeResponse(requestResponse.getResponse())
-    return self._helpers.bytesToString(requestResponse.getResponse()[0:analyzedResponse.getBodyOffset()])
+    return self._helpers.bytesToString(
+        requestResponse.getResponse()[: analyzedResponse.getBodyOffset()]
+    )
 
 def getResponseBody(self, requestResponse):
     analyzedResponse = self._helpers.analyzeResponse(requestResponse.getResponse())
@@ -89,17 +98,25 @@ def getResponseContentLength(self, response):
 
 def get_cookie_header_from_message(self, messageInfo):
     headers = list(self._helpers.analyzeRequest(messageInfo.getRequest()).getHeaders())
-    for header in headers:
-        if header.strip().lower().startswith("cookie:"):
-            return header
-    return None
+    return next(
+        (
+            header
+            for header in headers
+            if header.strip().lower().startswith("cookie:")
+        ),
+        None,
+    )
 
 def get_authorization_header_from_message(self, messageInfo):
     headers = list(self._helpers.analyzeRequest(messageInfo.getRequest()).getHeaders())
-    for header in headers:
-        if header.strip().lower().startswith("authorization:"):
-            return header
-    return None
+    return next(
+        (
+            header
+            for header in headers
+            if header.strip().lower().startswith("authorization:")
+        ),
+        None,
+    )
 
 class IHttpRequestResponseImplementation(IHttpRequestResponse):
     def __init__(self, service, req, res):

@@ -165,10 +165,10 @@ class ConfigurationTab():
         model.removeElement(selectedItem)
 
     def getSavedHeadersTitles(self):
-        titles = []
-        for savedHeaderObj in self._extender.savedHeaders:
-            titles.append(savedHeaderObj['title'])
-        return titles
+        return [
+            savedHeaderObj['title']
+            for savedHeaderObj in self._extender.savedHeaders
+        ]
 
     def fetchCookiesHeader(self, event):
         if self._extender.lastCookiesHeader:

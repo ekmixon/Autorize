@@ -26,7 +26,7 @@ class Initiator():
         self._extender.BYPASSSED_STR = "Bypassed!"
         self._extender.IS_ENFORCED_STR = "Is enforced??? (please configure enforcement detector)"
         self._extender.ENFORCED_STR = "Enforced!"
-        
+
         self._extender.intercept = 0
         self._extender.lastCookiesHeader = ""
         self._extender.lastAuthorizationHeader = ""

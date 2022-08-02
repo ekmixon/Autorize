@@ -58,7 +58,7 @@ class MatchReplace():
 
         self._extender.MRType = JComboBox(MRStrings)
         self._extender.MRType.setBounds(column2X, row1Y, editWidth, labelHeight)
-       
+
         self._extender.MText = JTextArea("", 5, 30)
         scrollMText = JScrollPane(self._extender.MText)
         scrollMText.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED)
@@ -110,7 +110,7 @@ class MatchReplace():
         typeName = self._extender.MRType.getSelectedItem()
         match = self._extender.MText.getText()
         replace = self._extender.RText.getText()
-        key = typeName + " " + match + "->" + replace
+        key = f"{typeName} {match}->{replace}"
         if key in self._extender.badProgrammerMRModel:
             self._extender.MRFeedback.setText("Match/Replace already exists")
             return
@@ -130,14 +130,14 @@ class MatchReplace():
 
     def delMRFilter(self, event):
         index = self._extender.MRList.getSelectedIndex()
-        if not index == -1:
+        if index != -1:
             key = self._extender.MRList.getSelectedValue()
             del self._extender.badProgrammerMRModel[key]
             self._extender.MRList.getModel().remove(index)
     
     def modMRFilter(self, event):
         index = self._extender.MRList.getSelectedIndex()
-        if not index == -1:
+        if index != -1:
             key = self._extender.MRList.getSelectedValue()
             self._extender.MRType.getModel().setSelectedItem(self._extender.badProgrammerMRModel[key]["type"])
             self._extender.MText.setText(self._extender.badProgrammerMRModel[key]["match"])

@@ -14,27 +14,36 @@ from java.net import URL
 import re
 
 def tool_needs_to_be_ignored(self, toolFlag):
-    for i in range(0, self.IFList.getModel().getSize()):
-        if self.IFList.getModel().getElementAt(i).split(":")[0] == "Ignore spider requests":
-            if (toolFlag == self._callbacks.TOOL_SPIDER):
-                return True
-        if self.IFList.getModel().getElementAt(i).split(":")[0] == "Ignore proxy requests":
-            if (toolFlag == self._callbacks.TOOL_PROXY):
-                return True
-        if self.IFList.getModel().getElementAt(i).split(":")[0] == "Ignore target requests":
-            if (toolFlag == self._callbacks.TOOL_TARGET):
-                return True
+    for i in range(self.IFList.getModel().getSize()):
+        if self.IFList.getModel().getElementAt(i).split(":")[
+            0
+        ] == "Ignore spider requests" and (
+            toolFlag == self._callbacks.TOOL_SPIDER
+        ):
+            return True
+        if self.IFList.getModel().getElementAt(i).split(":")[
+            0
+        ] == "Ignore proxy requests" and (
+            toolFlag == self._callbacks.TOOL_PROXY
+        ):
+            return True
+        if self.IFList.getModel().getElementAt(i).split(":")[
+            0
+        ] == "Ignore target requests" and (
+            toolFlag == self._callbacks.TOOL_TARGET
+        ):
+            return True
     return False
 
 def capture_last_cookie_header(self, messageInfo):
-    cookies = get_cookie_header_from_message(self, messageInfo)
-    if cookies:
+    if cookies := get_cookie_header_from_message(self, messageInfo):
         self.lastCookiesHeader = cookies
         self.fetchCookiesHeaderButton.setEnabled(True)
 
 def capture_last_authorization_header(self, messageInfo):
-    authorization = get_authorization_header_from_message(self, messageInfo)
-    if authorization:
+    if authorization := get_authorization_header_from_message(
+        self, messageInfo
+    ):
         self.lastAuthorizationHeader = authorization
         self.fetchAuthorizationHeaderButton.setEnabled(True)
 
@@ -49,9 +58,12 @@ def handle_304_status_code_prevention(self, messageIsRequest, messageInfo):
     if self.prevent304.isSelected():
         if messageIsRequest:
             requestHeaders = list(self._helpers.analyzeRequest(messageInfo).getHeaders())
-            newHeaders = list()   
+            newHeaders = []
             for header in requestHeaders:
-                if not "If-None-Match:" in header and not "If-Modified-Since:" in header:
+                if (
+                    "If-None-Match:" not in header
+                    and "If-Modified-Since:" not in header
+                ):
                     newHeaders.append(header)
                     should_prevent = True
         if should_prevent:
@@ -61,7 +73,10 @@ def handle_304_status_code_prevention(self, messageIsRequest, messageInfo):
             messageInfo.setRequest(self._helpers.buildHttpMessage(newHeaders, bodyStr))
     
 def message_not_from_autorize(self, messageInfo):
-    return not self.replaceString.getText() in self._helpers.analyzeRequest(messageInfo).getHeaders()
+    return (
+        self.replaceString.getText()
+        not in self._helpers.analyzeRequest(messageInfo).getHeaders()
+    )
 
 def no_filters_defined(self):
     return self.IFList.getModel().getSize() == 0
@@ -77,64 +92,82 @@ def message_passed_interception_filters(self, messageInfo):
     resStr = self._helpers.bytesToString(resBodyBytes)
 
     message_passed_filters = True
-    for i in range(0, self.IFList.getModel().getSize()):
+    for i in range(self.IFList.getModel().getSize()):
         if self.IFList.getModel().getElementAt(i).split(":")[0] == "Scope items only":
             currentURL = URL(urlString)
             if not self._callbacks.isInScope(currentURL):
                 message_passed_filters = False
 
-        if self.IFList.getModel().getElementAt(i).split(":")[0] == "URL Contains (simple string)":
-            if self.IFList.getModel().getElementAt(i)[30:] not in urlString:
-                message_passed_filters = False
+        if (
+            self.IFList.getModel().getElementAt(i).split(":")[0]
+            == "URL Contains (simple string)"
+            and self.IFList.getModel().getElementAt(i)[30:] not in urlString
+        ):
+            message_passed_filters = False
 
         if self.IFList.getModel().getElementAt(i).split(":")[0] == "URL Contains (regex)":
             regex_string = self.IFList.getModel().getElementAt(i)[22:]
             if re.search(regex_string, urlString, re.IGNORECASE) is None:
                 message_passed_filters = False
 
-        if self.IFList.getModel().getElementAt(i).split(":")[0] == "URL Not Contains (simple string)":
-            if self.IFList.getModel().getElementAt(i)[34:] in urlString:
-                message_passed_filters = False
+        if (
+            self.IFList.getModel().getElementAt(i).split(":")[0]
+            == "URL Not Contains (simple string)"
+            and self.IFList.getModel().getElementAt(i)[34:] in urlString
+        ):
+            message_passed_filters = False
 
         if self.IFList.getModel().getElementAt(i).split(":")[0] == "URL Not Contains (regex)":
             regex_string = self.IFList.getModel().getElementAt(i)[26:]
-            if not re.search(regex_string, urlString, re.IGNORECASE) is None:
+            if re.search(regex_string, urlString, re.IGNORECASE) is not None:
                 message_passed_filters = False
 
-        if self.IFList.getModel().getElementAt(i).split(":")[0] == "Request Body contains (simple string)":
-            if self.IFList.getModel().getElementAt(i)[40:] not in bodyStr:
-                message_passed_filters = False
-                
+        if (
+            self.IFList.getModel().getElementAt(i).split(":")[0]
+            == "Request Body contains (simple string)"
+            and self.IFList.getModel().getElementAt(i)[40:] not in bodyStr
+        ):
+            message_passed_filters = False
+
         if self.IFList.getModel().getElementAt(i).split(":")[0] == "Request Body contains (regex)":
             regex_string = self.IFList.getModel().getElementAt(i)[32:]
             if re.search(regex_string, bodyStr, re.IGNORECASE) is None:
                 message_passed_filters = False
-        
-        if self.IFList.getModel().getElementAt(i).split(":")[0] == "Request Body NOT contains (simple string)":
-            if self.IFList.getModel().getElementAt(i)[44:] in bodyStr:
-                message_passed_filters = False
-                
+
+        if (
+            self.IFList.getModel().getElementAt(i).split(":")[0]
+            == "Request Body NOT contains (simple string)"
+            and self.IFList.getModel().getElementAt(i)[44:] in bodyStr
+        ):
+            message_passed_filters = False
+
         if self.IFList.getModel().getElementAt(i).split(":")[0] == "Request Body Not contains (regex)":
             regex_string = self.IFList.getModel().getElementAt(i)[36:]
-            if not re.search(regex_string, bodyStr, re.IGNORECASE) is None:
+            if re.search(regex_string, bodyStr, re.IGNORECASE) is not None:
                 message_passed_filters = False
 
-        if self.IFList.getModel().getElementAt(i).split(":")[0] == "Response Body contains (simple string)":
-            if self.IFList.getModel().getElementAt(i)[41:] not in resStr:
-                message_passed_filters = False
+        if (
+            self.IFList.getModel().getElementAt(i).split(":")[0]
+            == "Response Body contains (simple string)"
+            and self.IFList.getModel().getElementAt(i)[41:] not in resStr
+        ):
+            message_passed_filters = False
 
         if self.IFList.getModel().getElementAt(i).split(":")[0] == "Response Body contains (regex)":
             regex_string = self.IFList.getModel().getElementAt(i)[33:]
             if re.search(regex_string, resStr, re.IGNORECASE) is None:
                 message_passed_filters = False
 
-        if self.IFList.getModel().getElementAt(i).split(":")[0] == "Response Body NOT contains (simple string)":
-            if self.IFList.getModel().getElementAt(i)[45:] in resStr:
-                message_passed_filters = False
-                
+        if (
+            self.IFList.getModel().getElementAt(i).split(":")[0]
+            == "Response Body NOT contains (simple string)"
+            and self.IFList.getModel().getElementAt(i)[45:] in resStr
+        ):
+            message_passed_filters = False
+
         if self.IFList.getModel().getElementAt(i).split(":")[0] == "Response Body Not contains (regex)":
             regex_string = self.IFList.getModel().getElementAt(i)[37:]
-            if not re.search(regex_string, resStr, re.IGNORECASE) is None:
+            if re.search(regex_string, resStr, re.IGNORECASE) is not None:
                 message_passed_filters = False
 
         if self.IFList.getModel().getElementAt(i).split(":")[0] == "Only HTTP methods (newline separated)":
@@ -162,20 +195,21 @@ def handle_message(self, toolFlag, messageIsRequest, messageInfo):
 
     if (self.intercept and valid_tool(self, toolFlag) or toolFlag == "AUTORIZE"):
         handle_304_status_code_prevention(self, messageIsRequest, messageInfo)
-    
-        if not messageIsRequest:
-            if message_not_from_autorize(self, messageInfo):
-                if self.ignore304.isSelected():
-                    if isStatusCodesReturned(self, messageInfo, ["304", "204"]):
-                        return
 
-                if no_filters_defined(self):
-                    checkAuthorization(self, messageInfo,
-                    self._helpers.analyzeResponse(messageInfo.getResponse()).getHeaders(),
-                                            self.doUnauthorizedRequest.isSelected())
-                else:
-                    if message_passed_interception_filters(self, messageInfo):
-                        checkAuthorization(self, messageInfo,self._helpers.analyzeResponse(messageInfo.getResponse()).getHeaders(),self.doUnauthorizedRequest.isSelected())
+        if not messageIsRequest and message_not_from_autorize(
+            self, messageInfo
+        ):
+            if self.ignore304.isSelected() and isStatusCodesReturned(
+                self, messageInfo, ["304", "204"]
+            ):
+                return
+
+            if no_filters_defined(self):
+                checkAuthorization(self, messageInfo,
+                self._helpers.analyzeResponse(messageInfo.getResponse()).getHeaders(),
+                                        self.doUnauthorizedRequest.isSelected())
+            elif message_passed_interception_filters(self, messageInfo):
+                checkAuthorization(self, messageInfo,self._helpers.analyzeResponse(messageInfo.getResponse()).getHeaders(),self.doUnauthorizedRequest.isSelected())
 
 def send_request_to_autorize(self, messageInfo):
     if messageInfo.getResponse() is None:

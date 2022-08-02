@@ -131,16 +131,13 @@ class TableModel(AbstractTableModel):
             response = logEntry._requestResponse.getResponse()
             return len(logEntry._requestResponse.getResponse()) - self._extender._helpers.analyzeResponse(response).getBodyOffset()
         if columnIndex == 5:
-            if logEntry._unauthorizedRequestResponse is not None:
-                response = logEntry._unauthorizedRequestResponse.getResponse()
-                return len(logEntry._unauthorizedRequestResponse.getResponse()) - self._extender._helpers.analyzeResponse(response).getBodyOffset()
-            else:
+            if logEntry._unauthorizedRequestResponse is None:
                 return 0
+            response = logEntry._unauthorizedRequestResponse.getResponse()
+            return len(logEntry._unauthorizedRequestResponse.getResponse()) - self._extender._helpers.analyzeResponse(response).getBodyOffset()
         if columnIndex == 6:
-            return logEntry._enfocementStatus   
-        if columnIndex == 7:
-            return logEntry._enfocementStatusUnauthorized        
-        return ""
+            return logEntry._enfocementStatus
+        return logEntry._enfocementStatusUnauthorized if columnIndex == 7 else ""
 
 class Table(JTable):
     def __init__(self, extender):
@@ -154,8 +151,8 @@ class Table(JTable):
     def prepareRenderer(self, renderer, row, col):
         comp = JTable.prepareRenderer(self, renderer, row, col)
         value = self._extender.tableModel.getValueAt(self._extender.logTable.convertRowIndexToModel(row), col)
-        
-        if col == 6 or col == 7:
+
+        if col in [6, 7]:
             if value == self._extender.BYPASSSED_STR:
                 comp.setBackground(Color(255, 153, 153))
                 comp.setForeground(Color.BLACK)
@@ -198,11 +195,11 @@ class Table(JTable):
             collapse(self._extender, self._extender.modified_requests_tabs)
             collapse(self._extender, self._extender.unauthenticated_requests_tabs)
             expand(self._extender, self._extender.original_requests_tabs)
-        elif col == 4 or col == 6:
+        elif col in [4, 6]:
             collapse(self._extender, self._extender.original_requests_tabs)
             collapse(self._extender, self._extender.unauthenticated_requests_tabs)
             expand(self._extender, self._extender.modified_requests_tabs)
-        elif col == 5 or col == 7:
+        elif col in [5, 7]:
             collapse(self._extender, self._extender.original_requests_tabs)
             collapse(self._extender, self._extender.modified_requests_tabs)
             expand(self._extender, self._extender.unauthenticated_requests_tabs)
@@ -251,7 +248,10 @@ class TableRowFilter(RowFilter):
             return True
         elif self._extender.showAuthEnforcedUnauthenticated.isSelected() and self._extender.ENFORCED_STR == entry.getValue(7):
             return True
-        elif self._extender.showDisabledUnauthenticated.isSelected() and "Disabled" == entry.getValue(7):
+        elif (
+            self._extender.showDisabledUnauthenticated.isSelected()
+            and entry.getValue(7) == "Disabled"
+        ):
             return True
         else:
             return False

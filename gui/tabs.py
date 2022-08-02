@@ -155,7 +155,7 @@ class SendRequestRepeater(ActionListener):
         host = request.getHttpService().getHost()
         port = request.getHttpService().getPort()
         proto = request.getHttpService().getProtocol()
-        secure = True if proto == "https" else False
+        secure = proto == "https"
 
         self._callbacks.sendToRepeater(host, port, secure, request.getRequest(), "Autorize");
 
@@ -168,7 +168,7 @@ class SendResponseComparer(ActionListener):
         originalResponse = self._extender._currentlyDisplayedItem._originalrequestResponse
         modifiedResponse = self._extender._currentlyDisplayedItem._requestResponse
         unauthorizedResponse = self._extender._currentlyDisplayedItem._unauthorizedRequestResponse
-        
+
         self._callbacks.sendToComparer(originalResponse.getResponse())
         self._callbacks.sendToComparer(modifiedResponse.getResponse())
         self._callbacks.sendToComparer(unauthorizedResponse.getResponse())

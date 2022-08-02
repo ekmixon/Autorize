@@ -32,12 +32,12 @@ class SaveRestore():
         fileChooser = JFileChooser()
         fileChooser.setDialogTitle("State output file")
         userSelection = fileChooser.showSaveDialog(parentFrame)
-        
+
         if userSelection == JFileChooser.APPROVE_OPTION:
             exportFile = fileChooser.getSelectedFile()
             with open(exportFile.getAbsolutePath(), 'wb') as csvfile:
                 csvwriter = csv.writer(csvfile, delimiter='\t', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-                for i in range(0,self._extender._log.size()):
+                for i in range(self._extender._log.size()):
                     tempRequestResponseHost = self._extender._log.get(i)._requestResponse.getHttpService().getHost()
                     tempRequestResponsePort = self._extender._log.get(i)._requestResponse.getHttpService().getPort()
                     tempRequestResponseProtocol = self._extender._log.get(i)._requestResponse.getHttpService().getProtocol()
@@ -66,10 +66,31 @@ class SaveRestore():
                     tempEnforcementStatus = self._extender._log.get(i)._enfocementStatus
                     tempEnforcementStatusUnauthorized  = self._extender._log.get(i)._enfocementStatusUnauthorized           
 
-                    tempRow = [tempRequestResponseHost,tempRequestResponsePort,tempRequestResponseProtocol,tempRequestResponseRequest,tempRequestResponseResponse]
-                    tempRow.extend([tempOriginalRequestResponseHost,tempOriginalRequestResponsePort,tempOriginalRequestResponseProtocol,tempOriginalRequestResponseRequest,tempOriginalRequestResponseResponse])
-                    tempRow.extend([tempUnauthorizedRequestResponseHost,tempUnauthorizedRequestResponsePort,tempUnauthorizedRequestResponseProtocol,tempUnauthorizedRequestResponseRequest,tempUnauthorizedRequestResponseResponse])
-                    tempRow.extend([tempEnforcementStatus,tempEnforcementStatusUnauthorized])
+                    tempRow = [
+                        tempRequestResponseHost,
+                        tempRequestResponsePort,
+                        tempRequestResponseProtocol,
+                        tempRequestResponseRequest,
+                        tempRequestResponseResponse,
+                        *[
+                            tempOriginalRequestResponseHost,
+                            tempOriginalRequestResponsePort,
+                            tempOriginalRequestResponseProtocol,
+                            tempOriginalRequestResponseRequest,
+                            tempOriginalRequestResponseResponse,
+                        ],
+                        *[
+                            tempUnauthorizedRequestResponseHost,
+                            tempUnauthorizedRequestResponsePort,
+                            tempUnauthorizedRequestResponseProtocol,
+                            tempUnauthorizedRequestResponseRequest,
+                            tempUnauthorizedRequestResponseResponse,
+                        ],
+                        *[
+                            tempEnforcementStatus,
+                            tempEnforcementStatusUnauthorized,
+                        ],
+                    ]
 
                     csvwriter.writerow(tempRow)
 
@@ -78,7 +99,7 @@ class SaveRestore():
         fileChooser = JFileChooser()
         fileChooser.setDialogTitle("State import file")
         userSelection = fileChooser.showDialog(parentFrame,"Restore")
-        
+
         if userSelection == JFileChooser.APPROVE_OPTION:
             importFile = fileChooser.getSelectedFile()
 
@@ -105,7 +126,7 @@ class SaveRestore():
 
                     tempOriginalRequestResponseHttpService = self._extender._helpers.buildHttpService(tempOriginalRequestResponseHost,int(tempOriginalRequestResponsePort),tempOriginalRequestResponseProtocol)
                     tempOriginalRequestResponse = IHttpRequestResponseImplementation(tempOriginalRequestResponseHttpService,tempOriginalRequestResponseRequest,tempOriginalRequestResponseResponse)
-                    
+
                     checkAuthentication = True
                     if row[10] != '':
                         tempUnauthorizedRequestResponseHost = row[10]
@@ -123,7 +144,7 @@ class SaveRestore():
                     tempEnforcementStatusUnauthorized  = row[16]
 
                     self._extender._lock.acquire()
-        
+
                     row = self._extender._log.size()
 
                     if checkAuthentication:
@@ -151,12 +172,14 @@ class SaveRestore():
 
                 lastRow = self._extender._log.size()
                 if lastRow > 0:
-                    cookiesHeader = self._extender.get_cookie_header_from_message(self._extender._log.get(lastRow - 1)._requestResponse)
-                    if cookiesHeader:
+                    if cookiesHeader := self._extender.get_cookie_header_from_message(
+                        self._extender._log.get(lastRow - 1)._requestResponse
+                    ):
                         self._extender.lastCookiesHeader = cookiesHeader
                         self._extender.fetchCookiesHeaderButton.setEnabled(True)
-                    authorizationHeader = self._extender.get_authorization_header_from_message(self._extender._log.get(lastRow - 1)._requestResponse)
-                    if authorizationHeader:
+                    if authorizationHeader := self._extender.get_authorization_header_from_message(
+                        self._extender._log.get(lastRow - 1)._requestResponse
+                    ):
                         self._extender.lastAuthorizationHeader = authorizationHeader
                         self._extender.fetchAuthorizationHeaderButton.setEnabled(True)
 
